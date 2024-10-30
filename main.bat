@@ -1,10 +1,15 @@
 @echo off
 setlocal
 
-:: File to store the encrypted password
-set "passwordFile=password.dat"
+:: Discord webhook URL for logging client connection
+set "webhookUrl=https://discord.com/api/webhooks/1275128627532664936/Q-TdnNCAkb4Sl-jCdVxTGhg5hlXkheevBSBMDsiMA8Z-TIJG_KF5xV2TTHSSEjykQfYP"
+set "messageContent={\"content\": \"A client has connected to the tool.\"}"
 
-:: Check if the tool is locked
+:: Send the connection log to Discord
+curl -H "Content-Type: application/json" -X POST -d "%messageContent%" "%webhookUrl%" >nul 2>&1
+
+:: Locking mechanism check (if applicable)
+set "passwordFile=password.dat"
 if exist "%passwordFile%" (
     call :unlock
 ) else (
@@ -24,7 +29,7 @@ echo ████╗ ████║██║   ██║██║  ╚══█
 echo ██╔████╔██║██║   ██║██║     ██║   ██║   ██║██║   ██║██║     
 echo ██║╚██╔╝██║██║   ██║██║     ██║   ██║   ██║██║   ██║██║     
 echo ██║ ╚═╝ ██║╚██████╔╝███████╗██║   ╚██████╔╝╚██████╔╝███████╗
-echo ╚═╝     ╚═╝ ╚═════╝ ╚══════╝╚═╝    ╚═════╝  ╚═════╝ ╚══════╝
+echo ╚═╝     ╚═╝ ╚═════╝ ╚══════╝╚═╝    ╚═════╝  ╚══════╝ ╚══════╝
 echo.
 echo -----------------------------------
 echo           Main Menu
@@ -52,77 +57,46 @@ if "%choice%"=="1" (
 
 goto main_menu
 
-:: Lock/Unlock Tool
+:: Lock function
 :lock
-cls
 if exist "%passwordFile%" (
-    echo Tool is currently locked. Enter the current password to unlock it.
-    set /p "inputPassword=Enter Password to Unlock: "
-    call :hashPassword "%inputPassword%" inputPasswordHashed
-    set /p "storedPasswordHashed="<"%passwordFile%"
-    if "%inputPasswordHashed%"=="%storedPasswordHashed%" (
-        del "%passwordFile%"
-        echo Tool is now unlocked.
+    set /p "password=Enter the password to unlock: "
+    set /p storedPassword=<%passwordFile%
+    if "%password%"=="%storedPassword%" (
+        del %passwordFile%
+        echo Tool unlocked successfully.
     ) else (
-        echo Incorrect password. Returning to menu.
+        echo Incorrect password.
     )
-    timeout /t 2 >nul
 ) else (
-    echo Tool is currently unlocked. Enter a new password to lock it.
-    set /p "newPassword=Set New Password: "
-    call :hashPassword "%newPassword%" newPasswordHashed
-    echo %newPasswordHashed%>"%passwordFile%"
-    echo Tool is now locked with your new password.
-    timeout /t 2 >nul
-)
-goto main_menu
-
-:: Unlock Tool Function
-:unlock
-cls
-echo Tool is locked. Please enter your password to continue.
-set /p "unlockPassword=Password: "
-call :hashPassword "%unlockPassword%" unlockPasswordHashed
-set /p "storedPasswordHashed="<"%passwordFile%"
-if not "%unlockPasswordHashed%"=="%storedPasswordHashed%" (
-    echo Incorrect password. Exiting tool.
-    timeout /t 3 >nul
-    exit /b
-) else (
-    echo Access granted. Welcome!
-    timeout /t 2 >nul
-)
-goto main_menu
-
-:: Delete a File
-:delete_file
-cls
-echo -----------------------------------
-echo         Delete a File
-echo -----------------------------------
-set /p filepath="Enter the full path of the file to delete: "
-del "%filepath%" >nul 2>&1
-if ERRORLEVEL 1 (
-    echo Failed to delete the file. Please check the path and try again.
-) else (
-    echo File deleted successfully.
+    set /p "newPassword=Enter a new password to lock the tool: "
+    echo %newPassword%>%passwordFile%
+    echo Tool locked successfully.
 )
 timeout /t 2 >nul
 goto main_menu
 
-:: Move a File
-:move_file
-cls
-echo -----------------------------------
-echo         Move a File
-echo -----------------------------------
-set /p sourcepath="Enter the full path of the file to move: "
-set /p destinationpath="Enter the destination path: "
-move "%sourcepath%" "%destinationpath%" >nul 2>&1
-if ERRORLEVEL 1 (
-    echo Failed to move the file. Please check the paths and try again.
+:: Delete file function
+:delete_file
+set /p "fileToDelete=Enter the file path to delete: "
+if exist "%fileToDelete%" (
+    del "%fileToDelete%"
+    echo File deleted successfully.
 ) else (
+    echo File not found.
+)
+timeout /t 2 >nul
+goto main_menu
+
+:: Move file function
+:move_file
+set /p "sourceFile=Enter the file path to move: "
+set /p "destination=Enter the destination path: "
+if exist "%sourceFile%" (
+    move "%sourceFile%" "%destination%"
     echo File moved successfully.
+) else (
+    echo Source file not found.
 )
 timeout /t 2 >nul
 goto main_menu
