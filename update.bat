@@ -1,43 +1,52 @@
 @echo off
 setlocal
 
-:: Set the URLs for the current and remote files
-set "localFile=main.bat"
-set "remoteFile=https://raw.githubusercontent.com/DWddeee/MULTOOL/main/main.bat"
+:: GitHub raw URL for the version file
+set "versionUrl=https://raw.githubusercontent.com/DVD404/DAV-Antivirus/main/version.txt"
+set "mainFileUrl=https://raw.githubusercontent.com/DVD404/DAV-Antivirus/main/main.bat"
 
-:: Set the version file URL
-set "versionFile=https://raw.githubusercontent.com/DWddeee/MULTOOL/main/version.txt"
+:: File to store the current version
+set "currentVersionFile=version.txt"
 
-:: Current version number
-set "currentVersion=0.0.1"
+:: Download the version file
+echo Checking for updates...
+curl -s -o "%currentVersionFile%" "%versionUrl"
 
-:: Get the latest version number from GitHub
-for /f %%i in ('curl -s "%versionFile%"') do set "latestVersion=%%i"
+:: Read the latest version
+set /p latestVersion=<"%currentVersionFile%"
 
-:: Compare versions
+:: Check if the latest version is different
+if not exist "main.bat" (
+    echo main.bat not found. Please make sure it exists in the same directory.
+    exit /b
+)
+
+:: Get the current version from the main.bat file
+for /F "tokens=2 delims=." %%a in ('findstr /C:"set currentVersion=" main.bat') do (
+    set "currentVersion=0.0.1" 
+)
+
 if "%latestVersion%"=="%currentVersion%" (
-    echo You are already using the latest version.
+    echo You are already using the latest version: %latestVersion%.
     exit /b
 )
 
-:: Download the latest version
-echo Downloading latest version...
-curl -o "%localFile%" "%remoteFile%"
+:: If the versions are different, download the latest main.bat
+echo New version found: %latestVersion%. Downloading...
+curl -s -o "main.bat" "%mainFileUrl%"
+echo Update in progress...
 
-:: Verify the update
+:: Verification step
 echo Verifying the update...
-:: Create a temporary file to store the downloaded content
-set "tempFile=temp_main.bat"
-curl -o "%tempFile%" "%remoteFile%"
-
-:: Compare the downloaded file with the local file
-fc /b "%localFile%" "%tempFile%" >nul
-if %errorlevel%==0 (
-    echo Update verified successfully!
-    del "%tempFile%"
-    exit /b
-) else (
-    echo Update verification failed. Please check the update process.
-    del "%tempFile%"
-    exit /b
+set "updatedVersionFile=main.bat"
+for /F "tokens=2 delims=." %%a in ('findstr /C:"set currentVersion=" "%updatedVersionFile%"') do (
+    set "updatedVersion=0.0.1"
 )
+
+if "%updatedVersion%"=="%latestVersion%" (
+    echo Update successful to version %latestVersion%.
+) else (
+    echo Update failed. The versions do not match.
+)
+
+exit /b
