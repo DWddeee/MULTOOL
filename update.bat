@@ -2,8 +2,8 @@
 setlocal
 
 :: GitHub raw URL for the version file
-set "versionUrl=https://raw.githubusercontent.com/DVD404/DAV-Antivirus/main/version.txt"
-set "mainFileUrl=https://raw.githubusercontent.com/DVD404/DAV-Antivirus/main/main.bat"
+set "versionUrl=https://raw.githubusercontent.com/DWddeee/MULTOOL/main/version.txt"
+set "mainFileUrl=https://raw.githubusercontent.com/DWddeee/MULTOOL/main/main.bat"
 
 :: File to store the current version
 set "currentVersionFile=version.txt"
