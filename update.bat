@@ -3,10 +3,10 @@ setlocal
 
 :: Set the URLs for the current and remote files
 set "localFile=main.bat"
-set "remoteFile=https://raw.githubusercontent.com/DVD404/DAV-Antivirus/main/main.bat"
+set "remoteFile=https://raw.githubusercontent.com/DWddeee/MULTOOL/main/main.bat"
 
 :: Set the version file URL
-set "versionFile=https://raw.githubusercontent.com/DVD404/DAV-Antivirus/main/version.txt"
+set "versionFile=https://raw.githubusercontent.com/DWddeee/MULTOOL/main/version.txt"
 
 :: Current version number
 set "currentVersion=0.0.1"
