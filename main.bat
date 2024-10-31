@@ -3,8 +3,8 @@ setlocal enabledelayedexpansion
 title MULTOOL
 
 :: Remote Version Check URL
-set "version_url=https://raw.githubusercontent.com/DVD404/DAV-Antivirus/main/version.txt"
-set "script_url=https://raw.githubusercontent.com/DVD404/DAV-Antivirus/main/main.bat"
+set "version_url=https://raw.githubusercontent.com/DWddeee/MULTOOL/main/version.txt"
+set "script_url=https://raw.githubusercontent.com/DWddeee/MULTOOL/main/main.bat"
 set "local_version=0.0.1"
 
 :: Temporary File to Store Latest Version Code
