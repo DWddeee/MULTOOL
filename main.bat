@@ -1,97 +1,56 @@
 @echo off
-setlocal enabledelayedexpansion
-title MULTOOL
+setlocal
 
-:: Remote Version Check URL
-set "version_url=https://raw.githubusercontent.com/DWddeee/MULTOOL/main/version.txt"
-set "script_url=https://raw.githubusercontent.com/DWddeee/MULTOOL/main/main.bat"
-set "local_version=0.0.1"
+:: URLs to check and download updates
+set "versionURL=https://raw.githubusercontent.com/DWddeee/MULTOOL/main/version.txt"
+set "scriptURL=https://raw.githubusercontent.com/DWddeee/MULTOOL/main/main.bat"
+:: Local version file to track updates
+set "localVersionFile=local_version.txt"
 
-:: Temporary File to Store Latest Version Code
-set "temp_update_file=%temp%\main_update.bat"
-
-:: Check for Internet Connection and Update Version File
-:check_update
-echo Checking for updates...
-:: Download the version file from GitHub
-curl -s -o "%temp%\remote_version.txt" %version_url%
-
-if %errorlevel% neq 0 (
-    echo Unable to connect to GitHub. The tool will not function without a connection.
-    timeout /t 3 >nul
-    exit /b
-)
-
-set /p "remote_version="<"%temp%\remote_version.txt"
-
-if not "!local_version!"=="!remote_version!" (
-    echo Update available! Version: !remote_version!
-    set /p choice="Do you want to update? (Y/N): "
-    if /i "!choice!"=="Y" (
-        echo Downloading new version...
-        curl -s -o "%temp_update_file%" %script_url%
-        
-        if %errorlevel% neq 0 (
-            echo Update failed: Could not download the latest version.
-            timeout /t 3 >nul
-            exit /b
-        )
-
-        echo Verifying and applying update...
-        > "%~f0" (
-            for /f "usebackq delims=" %%a in ("%temp_update_file%") do (
-                echo %%a
-            )
-        )
-
-        echo Update applied successfully to version !remote_version!.
-        timeout /t 3 >nul
-        goto main_menu
-    ) else (
-        echo Update skipped. Using local version: !local_version!.
-    )
+:: Function to get the current local version
+if exist "%localVersionFile%" (
+    set /p localVersion=<%localVersionFile%
 ) else (
-    echo The tool is up to date.
+    set "localVersion=0.0.1"
 )
-timeout /t 2 >nul
 
-:: Banner
+:: Check for updates before running the main menu
+call :update_check
+
+:: Display the Main Menu
 :main_menu
 cls
 title MULTOOL
 echo.
-echo [35m███████╗██╗   ██╗████████╗ ██████╗  ██████╗ ██╗     
-echo ██╔══██╗██║   ██║╚══██╔══╝██╔═══██╗██╔═══██╗██║     
-echo ███████║██║   ██║   ██║   ██║   ██║██║   ██║██║     
-echo ██╔══██║██║   ██║   ██║   ██║   ██║██║   ██║██║     
-echo ██║  ██║╚██████╔╝   ██║   ╚██████╔╝╚██████╔╝███████╗
-echo ╚═╝  ╚═╝ ╚═════╝    ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝
-echo [31mBE CAUTIOUS WITH THIS TOOL, CREATOR IS NOT RESPONSIBLE FOR ANY DAMAGES[0m
+echo ^[95m███████╗██╗     ██╗████████╗███████╗ ██████╗ ██╗      ██████╗ ██╗
+echo ^[95m██╔════╝██║     ██║╚══██╔══╝██╔════╝██╔═══██╗██║     ██╔═══██╗██║
+echo ^[95m█████╗  ██║     ██║   ██║   █████╗  ██║   ██║██║     ██║   ██║██║
+echo ^[95m██╔══╝  ██║     ██║   ██║   ██╔══╝  ██║   ██║██║     ██║   ██║██║
+echo ^[95m███████╗███████╗██║   ██║   ██║     ╚██████╔╝███████╗╚██████╔╝███████╗
+echo ^[95m╚══════╝╚══════╝╚═╝   ╚═╝   ╚═╝      ╚═════╝ ╚══════╝ ╚═════╝ ╚══════╝
 echo.
-
+echo WARNING: BE CAUTIOUS WITH THIS TOOL. THE CREATOR IS NOT RESPONSIBLE FOR ANY DAMAGES.
 timeout /t 5 >nul
-
-:: Main Menu Options
 echo -----------------------------------
 echo           Main Menu
 echo -----------------------------------
-echo 1. Lock/Unlock Tool
+echo 1. Check for Updates
 echo 2. Delete a File
 echo 3. Move a File
-echo 4. Update Tool
-echo 5. Exit
+echo 4. Exit
 echo -----------------------------------
 set /p choice="Choose an option: "
 
 if "%choice%"=="1" (
-    call :lock
+    call :update_check
+    goto main_menu
 ) else if "%choice%"=="2" (
     call :delete_file
+    goto main_menu
 ) else if "%choice%"=="3" (
     call :move_file
+    goto main_menu
 ) else if "%choice%"=="4" (
-    goto check_update
-) else if "%choice%"=="5" (
     exit
 ) else (
     echo Invalid choice, please try again.
@@ -99,14 +58,23 @@ if "%choice%"=="1" (
     goto main_menu
 )
 
-goto main_menu
+:: Update Check Function
+:update_check
+echo Checking for updates...
+curl -s -o "latest_version.txt" "%versionURL%"
+set /p latestVersion=<latest_version.txt
 
-:: Lock/Unlock Tool
-:lock
-cls
-echo Lock/Unlock feature is under development.
-timeout /t 2 >nul
-goto main_menu
+if "%localVersion%"=="%latestVersion%" (
+    echo You are up to date with version %localVersion%.
+) else (
+    echo New version %latestVersion% is available. Updating...
+    curl -s -o "%~f0" "%scriptURL%"  :: Updates the main script itself
+    echo %latestVersion% > "%localVersionFile%"  :: Update the local version
+    echo Update complete. Restarting tool with version %latestVersion%...
+    start "" "%~f0"  :: Restart script to load updated version
+    exit
+)
+goto :eof
 
 :: Delete a File
 :delete_file
@@ -122,7 +90,7 @@ if ERRORLEVEL 1 (
     echo File deleted successfully.
 )
 timeout /t 2 >nul
-goto main_menu
+goto :eof
 
 :: Move a File
 :move_file
@@ -139,4 +107,8 @@ if ERRORLEVEL 1 (
     echo File moved successfully.
 )
 timeout /t 2 >nul
-goto main_menu
+goto :eof
+
+:: End of Script
+:eof
+exit /b
