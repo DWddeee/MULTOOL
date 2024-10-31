@@ -4,15 +4,15 @@ setlocal
 :: File to store the encrypted password
 set "passwordFile=password.dat"
 
-:: Check if the tool is locked
-if exist "%passwordFile%" (
-    call :unlock
-) else (
-    echo No password is set. You can lock the tool from the menu.
+:: Check if update.bat exists
+if not exist "update.bat" (
+    echo Error: update.bat not found. The tool cannot run without it.
+    timeout /t 5 >nul
+    exit /b
 )
 
 :: Check for updates before running the main menu
-call update.bat
+call :check_updates
 
 :: Main Menu
 :main_menu
@@ -32,7 +32,8 @@ echo -----------------------------------
 echo 1. Lock/Unlock Tool
 echo 2. Delete a File
 echo 3. Move a File
-echo 4. Exit
+echo 4. Update Tool
+echo 5. Exit
 echo -----------------------------------
 set /p choice="Choose an option: "
 
@@ -43,6 +44,8 @@ if "%choice%"=="1" (
 ) else if "%choice%"=="3" (
     call :move_file
 ) else if "%choice%"=="4" (
+    call update.bat
+) else if "%choice%"=="5" (
     exit
 ) else (
     echo Invalid choice, please try again.
@@ -51,6 +54,22 @@ if "%choice%"=="1" (
 )
 
 goto main_menu
+
+:: Check for updates function
+:check_updates
+echo Checking for updates...
+set "currentVersion=0.0.1"
+set "versionUrl=https://raw.githubusercontent.com/DVD404/DAV-Antivirus/main/version.txt"
+for /f %%i in ('curl -s "%versionUrl%"') do set "latestVersion=%%i"
+
+if "%currentVersion%"=="%latestVersion%" (
+    echo The tool is up to date (Version: %currentVersion%).
+    goto main_menu
+) else (
+    echo A newer version is available (Version: %latestVersion%). Updating...
+    call update.bat
+    goto main_menu
+)
 
 :: Lock/Unlock Tool
 :lock
