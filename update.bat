@@ -11,8 +11,8 @@ set "mainFileUrl=https://raw.githubusercontent.com/DWddeee/MULTOOL/main/main.bat
 if exist "%localVersionFile%" (
     set /p "localVersion="<"%localVersionFile%"
 ) else (
-    set "localVersion=0.0.0"
-    echo 0.0.0 > "%localVersionFile%"
+    set "localVersion=0.0.2"
+    echo 0.0.2 > "%localVersionFile%"
 )
 
 :: Fetch latest version from GitHub
